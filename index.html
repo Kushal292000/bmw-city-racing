@@ -80,7 +80,7 @@ for(let i=0;i<35;i++){let h=18+Math.random()*50;let b=new THREE.Mesh(new THREE.B
 // Roadside streetlights
 const poles=[];for(let z=-390;z<20;z+=22)for(let s of [-1,1]){let g=new THREE.Group();let pole=new THREE.Mesh(new THREE.CylinderGeometry(.07,.1,6,8),mat(0x5e6c79,.7,.35));pole.position.y=3;g.add(pole);let arm=new THREE.Mesh(new THREE.BoxGeometry(1.5,.08,.08),mat(0x66798b,.7,.3));arm.position.set(-s*.65,5.8,0);g.add(arm);let bulb=new THREE.Mesh(new THREE.SphereGeometry(.17,8,8),new THREE.MeshBasicMaterial({color:0xffdba0}));bulb.position.set(-s*1.25,5.72,0);g.add(bulb);let light=new THREE.PointLight(0xffc98c,1.5,16);light.position.copy(bulb.position);g.add(light);g.position.set(s*12,0,z);scene.add(g);poles.push(g)}
 let player=null,carRoot=new THREE.Group();scene.add(carRoot);let carReady=false;
-const modelUrl='https://cdn.jsdelivr.net/gh/lukaizj/car-mod-saas@main/public/models/bmw-m4.web.glb';
+const modelUrl='./models/bmw-m4.web.glb';
 new GLTFLoader().load(modelUrl,gltf=>{
  const model=gltf.scene;model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.material=o.material.clone();const n=(o.name+' '+(o.material.name||'')).toLowerCase();if(/body|paint|hood|door|bumper|fender|bonnet/.test(n)){if(o.material.color)o.material.color.set(0xc7192d)} }});
  const box=new THREE.Box3().setFromObject(model),size=new THREE.Vector3();box.getSize(size);const center=new THREE.Vector3();box.getCenter(center);
