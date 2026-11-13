@@ -81,6 +81,52 @@ for(let i=0;i<35;i++){let h=18+Math.random()*50;let b=new THREE.Mesh(new THREE.B
 // Roadside streetlights
 const poles=[];for(let z=-390;z<20;z+=22)for(let s of [-1,1]){let g=new THREE.Group();let pole=new THREE.Mesh(new THREE.CylinderGeometry(.07,.1,6,8),mat(0x5e6c79,.7,.35));pole.position.y=3;g.add(pole);let arm=new THREE.Mesh(new THREE.BoxGeometry(1.5,.08,.08),mat(0x66798b,.7,.3));arm.position.set(-s*.65,5.8,0);g.add(arm);let bulb=new THREE.Mesh(new THREE.SphereGeometry(.17,8,8),new THREE.MeshBasicMaterial({color:0xffdba0}));bulb.position.set(-s*1.25,5.72,0);g.add(bulb);let light=new THREE.PointLight(0xffc98c,1.5,16);light.position.copy(bulb.position);g.add(light);g.position.set(s*12,0,z);scene.add(g);poles.push(g)}
 let player=null,carRoot=new THREE.Group();scene.add(carRoot);let carReady=false;
+ 
+// NITRO EXHAUST FIRE EFFECT
+const nitroFlames = [];
+
+function createNitroFlame(x) {
+    const flame = new THREE.Group();
+
+    const blue = new THREE.Mesh(
+        new THREE.ConeGeometry(0.13, 0.7, 8),
+        new THREE.MeshBasicMaterial({
+            color: 0x20cfff,
+            transparent: true,
+            opacity: 0.9,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        })
+    );
+
+    blue.rotation.x = Math.PI / 2;
+    blue.position.z = 0.35;
+    flame.add(blue);
+
+    const orange = new THREE.Mesh(
+        new THREE.ConeGeometry(0.075, 0.42, 8),
+        new THREE.MeshBasicMaterial({
+            color: 0xff7200,
+            transparent: true,
+            opacity: 0.95,
+            depthWrite: false
+        })
+    );
+
+    orange.rotation.x = Math.PI / 2;
+    orange.position.z = 0.24;
+    flame.add(orange);
+
+    flame.position.set(x, 0.18, 1);
+    flame.visible = false;
+    carRoot.add(flame);
+
+    nitroFlames.push(flame);
+}
+
+createNitroFlame(-0.4);
+createNitroFlame(0.4);
+
 const modelUrl='./models/bmw-m4.web.glb';
  const loader = new GLTFLoader();
 loader.setMeshoptDecoder(MeshoptDecoder);
@@ -107,6 +153,17 @@ function damp(a,b,k,dt){return THREE.MathUtils.damp(a,b,k,dt)}
 function frame(t){requestAnimationFrame(frame);let dt=Math.min((t-last)/1000,.04);last=t;
  if(active&&!paused&&carReady){
   let boost=!!keys[' ']&&nitro>0;if(boost)nitro=Math.max(0,nitro-30*dt);else nitro=Math.min(100,nitro+8*dt);
+  nitroFlames.forEach((flame)=>{
+    flame.visible = boost;
+
+    if(boost){
+        flame.scale.set(
+            1,
+            0.85 + Math.random() * 0.5,
+            1
+        );
+    }
+});
   let target=keys['w']||keys['arrowup']?(boost?195:145):keys['s']||keys['arrowdown']?28:72;
   speed=damp(speed,target,keys['s']?4:1.25,dt);
   let input=(keys['a']||keys['arrowleft']?-1:0)+(keys['d']||keys['arrowright']?1:0);steer=damp(steer,input,5,dt);
