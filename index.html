@@ -44,9 +44,16 @@ button{font:inherit;cursor:pointer}.primary{width:100%;border:0;border-radius:8p
 <div id="toast"></div>
 <div id="menu"><div class="panel"><div class="kicker">NIGHT DRIVE • CITY EDITION</div><h1>BMW M4<br><span>CITY RACING.</span></h1><p>Take control of a detailed BMW M4 and drive through a neon-lit city. Dodge traffic, build speed and use nitro on the open road.</p><button class="primary" id="start">START DRIVING</button><button class="secondary" id="how">HOW TO PLAY</button><p class="credit">3D vehicle model: “BMW M4 Competition M Package” by SRT Performance, licensed CC BY 4.0. This is an unofficial fan-made browser game and is not affiliated with BMW.</p></div></div>
 <div id="pause"><div class="panel"><div class="kicker">CITY DRIVE PAUSED</div><h1>TAKE A<br><span>BREAK.</span></h1><button class="primary" id="resume">RESUME DRIVE</button></div></div>
-<script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script> <script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 const $=id=>document.getElementById(id),root=$('game');
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x09111c);scene.fog=new THREE.Fog(0x09111c,65,245);
 const camera=new THREE.PerspectiveCamera( sixty(),innerWidth/innerHeight,.1,500);function sixty(){return 62}
