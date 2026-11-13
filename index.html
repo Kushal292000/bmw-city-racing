@@ -44,6 +44,18 @@ button{font:inherit;cursor:pointer}.primary{width:100%;border:0;border-radius:8p
 <div id="toast"></div>
 <div id="menu"><div class="panel"><div class="kicker">NIGHT DRIVE • CITY EDITION</div><h1>BMW M4<br><span>CITY RACING.</span></h1><p>Take control of a detailed BMW M4 and drive through a neon-lit city. Dodge traffic, build speed and use nitro on the open road.</p><button class="primary" id="start">START DRIVING</button><button class="secondary" id="how">HOW TO PLAY</button><p class="credit">3D vehicle model: “BMW M4 Competition M Package” by SRT Performance, licensed CC BY 4.0. This is an unofficial fan-made browser game and is not affiliated with BMW.</p></div></div>
 <div id="pause"><div class="panel"><div class="kicker">CITY DRIVE PAUSED</div><h1>TAKE A<br><span>BREAK.</span></h1><button class="primary" id="resume">RESUME DRIVE</button></div></div>
+ 
+<div id="finish" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(5,12,25,0.94);align-items:center;justify-content:center;text-align:center;color:white;">
+  <div class="panel">
+    <div class="kicker">BMW CITY RACING</div>
+    <h1>🏁 RACE COMPLETED!</h1>
+    <p>CONGRATULATIONS DRIVER</p>
+    <h2>3.00 KM</h2>
+    <p>FINAL SCORE: <span id="finalScore">0</span></p>
+    <button class="primary" id="restart">RACE AGAIN</button>
+  </div>
+</div>
+
 <script type="importmap">
 {
   "imports": {
@@ -56,10 +68,11 @@ import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
  import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
 const $=id=>document.getElementById(id),root=$('game');
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x09111c);scene.fog=new THREE.Fog(0x09111c,65,245);
+scene.background=new THREE.Color(0xa9d4ed);
+scene.fog=new THREE.Fog(0xa9d4ed,100,350);
 const camera=new THREE.PerspectiveCamera( sixty(),innerWidth/innerHeight,.1,500);function sixty(){return 62}
 const renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.35));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.18;root.appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xaacfff,0x151923,2.0));const keyLight=new THREE.DirectionalLight(0xdceaff,2.2);keyLight.position.set(-30,45,20);keyLight.castShadow=true;keyLight.shadow.mapSize.set(1024,1024);scene.add(keyLight);
+scene.add(new THREE.HemisphereLight(0xffe7c2,0x66745f,1.6));const keyLight=new THREE.DirectionalLight(0xffd7a3,1.8);keyLight.position.set(-30,45,20);keyLight.castShadow=true;keyLight.shadow.mapSize.set(1024,1024);scene.add(keyLight);
 const mat=(c,m=0,r=.7)=>new THREE.MeshStandardMaterial({color:c,metalness:m,roughness:r});
 const roadMat=mat(0x202832,.12,.9),sideMat=mat(0x333e49,.1,.8),lineMat=mat(0xe8edf0,.1,.5);
 const road=new THREE.Mesh(new THREE.PlaneGeometry(22,420),roadMat);road.rotation.x=-Math.PI/2;road.position.set(0,-.12,-175);road.receiveShadow=true;scene.add(road);
@@ -141,13 +154,54 @@ loader.load(modelUrl, gltf => {
 },undefined,err=>{$('loadText').textContent='Could not load car model. Check your internet connection and refresh.';console.error(err)});
 const traffic=[];function makeTraffic(z){const g=new THREE.Group();const color=[0x202b38,0xd6dce2,0x1c536f,0x777b82,0xc18b2f][Math.floor(Math.random()*5)];const body=new THREE.Mesh(new THREE.BoxGeometry(1.8,.65,3.8),mat(color,.55,.3));body.position.y=.72;g.add(body);const cab=new THREE.Mesh(new THREE.BoxGeometry(1.48,.62,1.8),mat(0x152331,.35,.18));cab.position.set(0,1.3,.05);g.add(cab);for(let x of [-.93,.93])for(let zz of [-1.2,1.2]){let wheel=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.18,12),mat(0x090c10));wheel.rotation.z=Math.PI/2;wheel.position.set(x,.4,zz);g.add(wheel)}for(let x of [-.58,.58]){let light=new THREE.Mesh(new THREE.BoxGeometry(.35,.12,.06),new THREE.MeshBasicMaterial({color:0xff273c}));light.position.set(x,.86,1.93);g.add(light)}g.position.set([-7.2,-2.4,2.4,7.2][Math.floor(Math.random()*4)],0,z);scene.add(g);traffic.push(g)}
 for(let i=0;i<10;i++)makeTraffic(-45-i*33);
-let keys={},speed=0,dist=0,score=0,nitro=100,steer=0,active=false,paused=false,spawn=0,last=performance.now();
+let keys={},speed=0,dist=0,score=0,nitro=100,steer=0,active=false,paused=false,spawn=0,last=performance.now(),raceFinished=false;
 addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(e.key.toLowerCase()))e.preventDefault();if(e.key.toLowerCase()==='p'&&active)togglePause()});
 addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
 document.querySelectorAll('[data-key]').forEach(b=>{const k=b.dataset.key;b.addEventListener('pointerdown',e=>{e.preventDefault();keys[k]=true});['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>keys[k]=false))});
 function togglePause(){paused=!paused;$('pause').style.display=paused?'grid':'none'}
-$('start').onclick=()=>{if(!carReady){$('loadText').textContent='Still loading the BMW model…';$('loading').style.display='grid';return}active=true;$('menu').style.display='none';$('loading').style.display='none';last=performance.now()};
+
+$('start').onclick=()=>{
+    if(!carReady){
+        $('loadText').textContent='Still loading the BMW model…';
+        $('loading').style.display='grid';
+        return;
+    }
+
+    // Reset race
+    dist=0;
+    score=0;
+    speed=0;
+    nitro=100;
+    raceFinished=false;
+    paused=false;
+    active=false;
+
+    $('menu').style.display='none';
+    $('loading').style.display='none';
+
+    // Race countdown
+    const toast=$('toast');
+    toast.style.display='block';
+    toast.textContent='3';
+
+    setTimeout(()=>{toast.textContent='2';},1000);
+    setTimeout(()=>{toast.textContent='1';},2000);
+
+    setTimeout(()=>{
+        toast.textContent='GO! 🏁';
+        active=true;
+        last=performance.now();
+    },3000);
+
+    setTimeout(()=>{
+        toast.style.display='none';
+    },3800);
+};
 $('resume').onclick=togglePause;
+ $('restart').onclick=()=>{
+    $('finish').style.display='none';
+    $('start').click();
+};
 $('how').onclick=()=>{$('toast').textContent='W/↑ accelerate • S/↓ brake • A/D steer • SPACE nitro • P pause';$('toast').style.display='block';};
 function damp(a,b,k,dt){return THREE.MathUtils.damp(a,b,k,dt)}
 function frame(t){requestAnimationFrame(frame);let dt=Math.min((t-last)/1000,.04);last=t;
@@ -169,6 +223,15 @@ function frame(t){requestAnimationFrame(frame);let dt=Math.min((t-last)/1000,.04
   let input=(keys['a']||keys['arrowleft']?-1:0)+(keys['d']||keys['arrowright']?1:0);steer=damp(steer,input,5,dt);
   carRoot.position.x=THREE.MathUtils.clamp(carRoot.position.x+steer*speed*.016*dt,-8.2,8.2);carRoot.rotation.y=damp(carRoot.rotation.y,-steer*.12,4,dt);
   let move=speed*.17*dt;dist+=move/1000;score+=Math.round(move*2);
+  
+if(dist >= 3 && !raceFinished){
+    dist = 3;
+    raceFinished = true;
+    active = false;
+
+    $('finalScore').textContent = score;
+    $('finish').style.display = 'flex';
+}
   for(let m of marks){m.position.z+=move*2.4;if(m.position.z>18)m.position.z-=420}
   for(let b of blocks){b.position.z+=move*1.3;if(b.position.z>30)b.position.z-=405}
   for(let p of poles){p.position.z+=move*1.3;if(p.position.z>25)p.position.z-=420}
