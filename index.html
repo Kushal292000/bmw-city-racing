@@ -58,7 +58,7 @@ import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 const $=id=>document.getElementById(id),root=$('game');
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x09111c);scene.fog=new THREE.Fog(0x09111c,65,245);
 const camera=new THREE.PerspectiveCamera( sixty(),innerWidth/innerHeight,.1,500);function sixty(){return 62}
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.8));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.18;root.appendChild(renderer.domElement);
+const renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.35));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.18;root.appendChild(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xaacfff,0x151923,2.0));const keyLight=new THREE.DirectionalLight(0xdceaff,2.2);keyLight.position.set(-30,45,20);keyLight.castShadow=true;keyLight.shadow.mapSize.set(1024,1024);scene.add(keyLight);
 const mat=(c,m=0,r=.7)=>new THREE.MeshStandardMaterial({color:c,metalness:m,roughness:r});
 const roadMat=mat(0x202832,.12,.9),sideMat=mat(0x333e49,.1,.8),lineMat=mat(0xe8edf0,.1,.5);
